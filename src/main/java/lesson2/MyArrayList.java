@@ -1,26 +1,55 @@
 package lesson2;
 
+import java.util.Arrays;
 import java.util.Comparator;
 
-public class MyArrayList<T extends Comparable<T>> {
+public class MyArrayList<T extends Comparable<T>> implements Cloneable{
+
+    private static final int DEFAULT_CAPACITY = 10;
+    private static final int GROWTH_RATE = 10;
+
     private T[] list;
     private int size;
-    private final int DEFAULT_CAPACITY = 10;
+    private final Comparator<T> comparator;
 
     public MyArrayList(int capacity) {
+        this(capacity, Comparator.naturalOrder());
+    }
+
+    public MyArrayList() {
+        this(DEFAULT_CAPACITY);
+    }
+
+    public MyArrayList(Comparator comparator) {
+        this(DEFAULT_CAPACITY, comparator);
+    }
+
+    public MyArrayList(int capacity, Comparator comparator) {
         if (capacity <= 0) {
             throw new IllegalArgumentException("capacity: " + capacity);
         }
         list = (T[]) new Comparable[capacity];
+        this.comparator = comparator;
     }
 
-    public MyArrayList() {
-        list = (T[]) new Comparable[DEFAULT_CAPACITY];
+    public MyArrayList<T> clone() {
+        MyArrayList<T> newArrList = new MyArrayList<>(this.list.length, this.comparator);
+        newArrList.size = this.size;
+        newArrList.list = this.list.clone();
+        return newArrList;
     }
 
     public void add(T item) {
+        if (size == list.length) {
+            resize();
+        }
+
         list[size] = item;
         size++;
+    }
+
+    private void resize() {
+        list = Arrays.copyOf(list, list.length + GROWTH_RATE);
     }
 
     private void checkIndex(int index) {
@@ -73,6 +102,10 @@ public class MyArrayList<T extends Comparable<T>> {
         return size;
     }
 
+    public int capacity() {
+        return list.length;
+    }
+
     public final int indexOf(T item) {
         for (int i = 0; i < size; i++) {
             if (list[i].equals(item)) {
@@ -95,10 +128,6 @@ public class MyArrayList<T extends Comparable<T>> {
         return sb.toString();
     }
 
-    private boolean less(T item1, T item2) {
-        return item1.compareTo(item2) < 0;
-    }
-
     private void swap(int index1, int index2) {
         T temp = list[index1];
         list[index1] = list[index2];
@@ -106,19 +135,6 @@ public class MyArrayList<T extends Comparable<T>> {
     }
 
     public void selectionSort() {
-        int iMin;
-        for (int i = 0; i < size - 1; i++) {
-            iMin = i;
-            for (int j = i + 1; j < size; j++) {
-                if (less(list[j], list[iMin])) {
-                    iMin = j;
-                }
-            }
-            swap(i, iMin);
-        }
-    }
-
-    public void selectionSort(Comparator<T> comparator) {
         int iMin;
         for (int i = 0; i < size - 1; i++) {
             iMin = i;
@@ -136,7 +152,7 @@ public class MyArrayList<T extends Comparable<T>> {
         for (int i = 1; i < size; i++) {
             int j = i;
             key = list[i];
-            while (j > 0 && less(key, list[j - 1])) {
+            while (j > 0 && comparator.compare(key, list[j - 1]) < 0) {
                 list[j] = list[j - 1];
                 j--;
             }
@@ -149,7 +165,7 @@ public class MyArrayList<T extends Comparable<T>> {
         for (int i = size - 1; i > 0; i--) {
             isSwap = false;
             for (int j = 0; j < i; j++) {
-                if (less(list[j + 1], list[j])) {
+                if (comparator.compare(list[j + 1], list[j]) < 0) {
                     swap(j, j + 1);
                     isSwap = true;
                 }
