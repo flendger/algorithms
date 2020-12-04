@@ -22,6 +22,6 @@ public class MyStack<T extends Comparable<T>> {
     }
 
     public int size() {
-        return 0;
+        return list.size();
     }
 }
