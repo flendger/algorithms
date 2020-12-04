@@ -1,6 +1,5 @@
 package lesson4;
 
-import java.util.Iterator;
 import java.util.ListIterator;
 
 public class Lesson4App {
