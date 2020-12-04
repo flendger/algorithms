@@ -1,9 +1,10 @@
 package lesson4;
 
 import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.NoSuchElementException;
 
-public final class MyLinkedList <T extends Comparable<T>> {
+public final class MyLinkedList<T extends Comparable<T>> {
 
     private Node<T> first;
     private Node<T> last;
@@ -35,7 +36,11 @@ public final class MyLinkedList <T extends Comparable<T>> {
     }
 
     public void insertFirst(T value) {
-        first = new Node<>(value, first);
+        Node<T> tmp = new Node<>(value, first, null);
+        if (first != null) {
+            first.setPrevious(tmp);
+        }
+        first = tmp;
         if (last == null) {
             last = first;
         }
@@ -59,6 +64,8 @@ public final class MyLinkedList <T extends Comparable<T>> {
         first = first.getNext();
         if (first == null) {
             last = null;
+        } else {
+            first.setPrevious(null);
         }
         size--;
         return tmp;
@@ -70,7 +77,7 @@ public final class MyLinkedList <T extends Comparable<T>> {
             return;
         }
 
-        Node<T> tmp = new Node<>(value, null);
+        Node<T> tmp = new Node<>(value, null, last);
         last.setNext(tmp);
         last = tmp;
         size++;
@@ -93,14 +100,8 @@ public final class MyLinkedList <T extends Comparable<T>> {
             return removeFirst();
         }
 
-        Node<T> current = first;
-        //плохой алгоритм: чтобы получить предпоследний элемент, приходится всегда перебирать все элементы
-        //решить можно было бы через двусвязанный список, где каждый элемент еще имеет ссылку на предыдущий
-        while (!current.getNext().equals(last)) {
-            current = current.getNext();
-        }
         T tmp = last.getValue();
-        last = current;
+        last = last.getPrevious();
         last.setNext(null);
         size--;
 
@@ -132,13 +133,11 @@ public final class MyLinkedList <T extends Comparable<T>> {
             throw new NoSuchElementException(value.toString());
         }
 
-        Node<T> prev = null;
         Node<T> current = first;
         do {
             if (current.getValue().equals(value)) {
                 break;
             }
-            prev = current;
             current = current.getNext();
         } while (current != null);
 
@@ -146,14 +145,17 @@ public final class MyLinkedList <T extends Comparable<T>> {
             throw new NoSuchElementException(value.toString());
         }
 
-        if (prev == null) {
+        if (current.equals(first)) {
             removeFirst();
             return;
         }
 
+        Node<T> prev = current.getPrevious();
         prev.setNext(current.getNext());
         if (current.getNext() == null) {
             last = prev;
+        } else {
+            current.getNext().setPrevious(prev);
         }
         size--;
     }
@@ -163,11 +165,9 @@ public final class MyLinkedList <T extends Comparable<T>> {
             throw new IllegalArgumentException(String.valueOf(idx));
         }
 
-        Node<T> prev = null;
         Node<T> current = first;
 
         for (int i = 0; i < idx; i++) {
-            prev = current;
             current = current.getNext();
         }
 
@@ -175,14 +175,18 @@ public final class MyLinkedList <T extends Comparable<T>> {
             throw new NoSuchElementException();
         }
 
-        if (prev == null) {
+        if (current.equals(first)) {
             return removeFirst();
         }
+
+        Node<T> prev = current.getPrevious();
 
         T tmp = current.getValue();
         prev.setNext(current.getNext());
         if (current.getNext() == null) {
             last = prev;
+        } else {
+            current.getNext().setPrevious(prev);
         }
         size--;
         return tmp;
@@ -218,30 +222,75 @@ public final class MyLinkedList <T extends Comparable<T>> {
             return;
         }
 
-        Node<T> prev = first;
-        Node<T> current = prev.getNext();
+        Node<T> current = first.getNext();
         for (int i = 1; i < idx; i++) {
-            prev = current;
             current = current.getNext();
         }
 
-        Node<T> tmp = new Node<>(value, current);
+        Node<T> prev = current.getPrevious();
+        Node<T> tmp = new Node<>(value, current, prev);
         prev.setNext(tmp);
+        current.setPrevious(tmp);
         size++;
+    }
+
+    private Node<T> remove(Node<T> item) {
+        Node<T> current = first;
+
+        while (!current.equals(item)) {
+            current = current.getNext();
+        }
+
+        if (current.equals(first)) {
+            removeFirst();
+            return null;
+        }
+        Node<T> prev = current.getPrevious();
+        prev.setNext(current.getNext());
+        if (current.getNext() != null) {
+            current.getNext().setPrevious(prev);
+        }
+        size--;
+
+        return prev;
+    }
+
+    private Node<T> insert(Node<T> current, T value) {
+        if (current.equals(first)) {
+            insertFirst(value);
+            return first;
+        }
+
+        if (current.equals(last)) {
+            insertLast(value);
+            return last;
+        }
+
+        Node<T> tmp = new Node<>(value, current.getNext(), current.getPrevious());
+        current.getPrevious().setNext(tmp);
+        current.getNext().setPrevious(tmp);
+        size++;
+        return tmp;
     }
 
     public Iterator<T> iterator() {
         return new Iter();
     }
 
-    private static class Node<T>{
+    public ListIterator<T> listIterator() {
+        return new ListIter();
+    }
 
-        private final T value;
+    private static class Node<T> {
+
+        private T value;
         private Node<T> next;
+        private Node<T> previous;
 
-        public Node(T value, Node<T> next) {
+        public Node(T value, Node<T> next, Node<T> previous) {
             this.value = value;
             this.next = next;
+            this.previous = previous;
         }
 
         public T getValue() {
@@ -252,22 +301,30 @@ public final class MyLinkedList <T extends Comparable<T>> {
             return next;
         }
 
+        public Node<T> getPrevious() {
+            return previous;
+        }
+
         public void setNext(Node<T> next) {
             this.next = next;
+        }
+
+        public void setPrevious(Node<T> previous) {
+            this.previous = previous;
+        }
+
+        public void setValue(T value) {
+            this.value = value;
         }
     }
 
     private class Iter implements Iterator<T> {
 
-        private final Node<T> head;
+        private Node<T> head;
         private Node<T> current;
 
         public Iter() {
             this.head = first;
-        }
-
-        public Iter(Node<T> head) {
-            this.head = head;
         }
 
         @Override
@@ -291,6 +348,109 @@ public final class MyLinkedList <T extends Comparable<T>> {
             }
 
             return current.getValue();
+        }
+
+        /**
+        После удаления указатель смещается не предыдущий элемент
+         **/
+        @Override
+        public void remove() {
+            if (current == null) {
+                throw new NoSuchElementException();
+            }
+
+            if (current.equals(head)) {
+                head = current.getNext();
+            }
+
+            current = MyLinkedList.this.remove(current);
+            if (current == null) {
+                current = head;
+            }
+        }
+    }
+
+    private class ListIter implements ListIterator<T> {
+
+        private Node<T> current;
+
+
+        @Override
+        public boolean hasNext() {
+            if (current == null) {
+                return first != null;
+            }
+            return current.getNext() != null;
+        }
+
+        @Override
+        public T next() {
+            if (current == null) {
+                current = first;
+            } else {
+                current = current.getNext();
+            }
+
+            if (current == null) {
+                throw new NoSuchElementException();
+            }
+
+            return current.getValue();
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            if (current == null) {
+                return false;
+            }
+
+            return current.getPrevious() != null;
+        }
+
+        @Override
+        public T previous() {
+            if (current == null || current.getPrevious() == null) {
+                throw new NoSuchElementException();
+            }
+            current = current.getPrevious();
+            return current.getPrevious().getValue();
+        }
+
+        @Override
+        public int nextIndex() {
+            return 0;
+        }
+
+        @Override
+        public int previousIndex() {
+            return 0;
+        }
+
+        @Override
+        public void remove() {
+            if (current == null) {
+                throw new NoSuchElementException();
+            }
+
+            current = MyLinkedList.this.remove(current);
+        }
+
+        @Override
+        public void set(T t) {
+            if (current == null) {
+                throw new IllegalStateException();
+            }
+
+            current.setValue(t);
+        }
+
+        @Override
+        public void add(T t) {
+            if (current == null) {
+                throw new IllegalStateException();
+            }
+
+            current = insert(current, t);
         }
     }
 }
