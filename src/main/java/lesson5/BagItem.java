@@ -29,4 +29,8 @@ public class BagItem {
                 ", value=" + value +
                 '}';
     }
+
+    public int getId() {
+        return id;
+    }
 }

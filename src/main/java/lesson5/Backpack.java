@@ -21,6 +21,11 @@ public class Backpack {
         return items;
     }
 
+    public void setItems(List<BagItem> items) {
+        this.items.clear();
+        this.items.addAll(items);
+    }
+
     @Override
     public String toString() {
         return "Backpack{" +
