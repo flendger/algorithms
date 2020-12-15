@@ -21,6 +21,27 @@ public class MyTreeMap<Key extends Comparable<Key>, Value> {
         }
     }
 
+    public boolean isBalanced() {
+        return isBalanced(root);
+    }
+
+    private boolean isBalanced(Node node) {
+        if (node == null) return true;
+
+        int leftHeight = height(node.left);
+        int rightHeight = height(node.right);
+
+        if (Math.abs(leftHeight - rightHeight) > 1) {
+            return false;
+        }
+
+        if (! isBalanced(node.left)) {
+            return false;
+        }
+
+        return isBalanced(node.right);
+    }
+
     public int size() {
         return size(root);
     }
