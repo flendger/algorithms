@@ -1,6 +1,7 @@
 package lesson8;
 
 import java.util.LinkedList;
+import java.util.Optional;
 
 public class ChainingHashMap<Key, Value> {
     private final int capacity = 7;
@@ -74,11 +75,13 @@ public class ChainingHashMap<Key, Value> {
     public Value remove(Key key) {
         checkKeyNotNull(key);
         int i = hash(key);
-        for (Node node : st[i]) {
-            if (key.equals(node.key)) {
-                st[i].remove(node);
-                return node.value;
-            }
+        Optional<Node> fNode = st[i].stream()
+                .filter(node -> node.key.equals(key))
+                .findFirst();
+
+        if (fNode.isPresent()) {
+            st[i].remove(fNode.get());
+            return fNode.get().value;
         }
 
         return null;
