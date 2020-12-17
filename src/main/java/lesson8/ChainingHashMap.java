@@ -81,6 +81,7 @@ public class ChainingHashMap<Key, Value> {
 
         if (fNode.isPresent()) {
             st[i].remove(fNode.get());
+            size--;
             return fNode.get().value;
         }
 
