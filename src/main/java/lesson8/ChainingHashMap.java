@@ -3,10 +3,10 @@ package lesson8;
 import java.util.LinkedList;
 
 public class ChainingHashMap<Key, Value> {
-    private int capacity = 7;
+    private final int capacity = 7;
     private int size;
 
-    private LinkedList<Node>[] st;
+    private final LinkedList<Node>[] st;
 
     public ChainingHashMap() {
         st = new LinkedList[capacity];
@@ -68,6 +68,19 @@ public class ChainingHashMap<Key, Value> {
                 return node.value;
             }
         }
+        return null;
+    }
+
+    public Value remove(Key key) {
+        checkKeyNotNull(key);
+        int i = hash(key);
+        for (Node node : st[i]) {
+            if (key.equals(node.key)) {
+                st[i].remove(node);
+                return node.value;
+            }
+        }
+
         return null;
     }
 
