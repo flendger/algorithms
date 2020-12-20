@@ -1,12 +1,13 @@
 package lesson8;
 
 import java.util.LinkedList;
+import java.util.Optional;
 
 public class ChainingHashMap<Key, Value> {
-    private int capacity = 7;
+    private final int capacity = 7;
     private int size;
 
-    private LinkedList<Node>[] st;
+    private final LinkedList<Node>[] st;
 
     public ChainingHashMap() {
         st = new LinkedList[capacity];
@@ -68,6 +69,22 @@ public class ChainingHashMap<Key, Value> {
                 return node.value;
             }
         }
+        return null;
+    }
+
+    public Value remove(Key key) {
+        checkKeyNotNull(key);
+        int i = hash(key);
+        Optional<Node> fNode = st[i].stream()
+                .filter(node -> node.key.equals(key))
+                .findFirst();
+
+        if (fNode.isPresent()) {
+            st[i].remove(fNode.get());
+            size--;
+            return fNode.get().value;
+        }
+
         return null;
     }
 
